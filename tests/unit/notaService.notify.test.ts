@@ -1,6 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { NoteServiceImpl } from "../../src/services/NoteService";
+
+vi.mock( "../../src/services/notificationService", () => ({
+    notify: vi.fn(),
+}));
 import { notify } from "../../src/services/notificationService";
+
 import { tr } from "zod/v4/locales";
 
 class MockNoteRepository {
@@ -51,8 +56,8 @@ describe("NoteService - createNote (ejercicio 6)", () => {
         expect(resultado).toEqual(notaExpected);
 
         // Revision si se llama a notify
-        expect(notify).toBeCalledTimes(1);
-        expect(notify).toBeCalledWith(notaExpected);
+        expect(notify).toHaveBeenCalledTimes(1);
+        expect(notify).toHaveBeenCalledWith(notaExpected);
     });
 
     it("No llama a notify() si se crea una nota no pinned.", () => {
