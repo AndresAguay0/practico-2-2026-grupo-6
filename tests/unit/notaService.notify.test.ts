@@ -54,4 +54,33 @@ describe("NoteService - createNote (ejercicio 6)", () => {
         expect(notify).toBeCalledTimes(1);
         expect(notify).toBeCalledWith(notaExpected);
     });
-})
+
+    it("No llama a notify() si se crea una nota no pinned.", () => {
+
+        // Nota de prueba
+        const notaNoPinned = {
+            title: "Nota Prueba2",
+            content: "(0_0)",
+            pinned: false
+        };
+
+        // Nota esperada
+        const notaExpected2 = {
+            id: 11,
+            title: notaNoPinned.title,
+            content: notaNoPinned.content,
+            pinned: false
+        };
+
+        // Configuracion del repositorio mockeado
+        mockRepo.create.mockReturnValue(notaExpected2);
+
+        const resultado = noteService.createNote(notaNoPinned);
+
+        // Revision del return esperado
+        expect(resultado).toEqual(notaExpected2);
+
+        // Revision si no se llama a notify
+        expect(notify).not.toHaveBeenCalled();
+    });
+});
