@@ -8,82 +8,83 @@ vi.mock("../../src/services/notificationService", () => ({
     notify: vi.fn(),
 }));
 
-const app = makeApp(":memory:");
 
-describe("Notes Routes - Test de Integracion (ejercicio 3)", () => {
-    let app = makeApp(":memory:");
+describe("Notes Routes - Test de integracion", () => {
 
-    beforeEach(() => {
-        app = makeApp(":memory:");
-    });
-
-    it("Debe devolver una nota existente por su id", async () => {
-        const nota = {
-            title: "Comprar pan",
-            content: "Antes de las 20hs"
-        };
-
-        // Crear la nota que vamos a buscar
-        const nota_creada = await request(app)
-            .post("/notes")
-            .send(nota)
-            .expect(201);
-
-        // Buscar la nota por su id
-        const respuesta = await request(app)
-            .get(`/notes/${nota_creada.body.id}`)
-            .expect(200);
-
-        expect(respuesta.body).toEqual(nota_creada.body);
-    });
-
-    it("Debe devolver 404 cuando el id no existe", async () => {
-        const respuesta = await request(app)
-            .get("/notes/1557")
-            .expect(404);
-
-        expect(respuesta.body).toEqual({ error: "NotFound" });
-    });
-});
-
-describe("Notes Routes - Test de Integracion (ejercicio 6)", () => {
-
-    beforeEach(() => {
+    let app: ReturnType<typeof makeApp>;
+            
+    beforeEach( async () => {
         vi.clearAllMocks();
+        
+        app = makeApp(":memory:")
     });
 
-    // Caso de creación con pinned = false
-    it("Debe crear una nota sin activar el servicio de notify", async () => {
-        const nota_no_pinned = {
-            title: "Nota no pinned",
-            content: ">:|",
-            pinned: false
-        };
+    describe("(ejercicio 3)", () => {
 
-        await request(app).post("/notes").send(nota_no_pinned).expect(201);
+        it("Debe devolver una nota existente por su id", async () => {
+            const nota = {
+                title: "Comprar pan",
+                content: "Antes de las 20hs"
+            };
 
-        expect(notify).not.toHaveBeenCalled();
+            // Crear la nota que vamos a buscar
+            const nota_creada = await request(app)
+                .post("/notes")
+                .send(nota)
+                .expect(201);
+
+            // Buscar la nota por su id
+            const respuesta = await request(app)
+                .get(`/notes/${nota_creada.body.id}`)
+                .expect(200);
+
+            expect(respuesta.body).toEqual(nota_creada.body);
+        });
+
+        it("Debe devolver 404 cuando el id no existe", async () => {
+            const respuesta = await request(app)
+                .get("/notes/1557")
+                .expect(404);
+
+            expect(respuesta.body).toEqual({ error: "NotFound" });
+        });
     });
 
-    // Caso de creación con pinned = true
-    it("Debe crear una nota y activar el servicio de notify", async () => {
-        const nota_pinned = {
-            title: "Nota pinned",
-            content: ":D",
-            pinned: true
-        };
+    describe("(ejercicio 6)", () => {
 
-        await request(app).post("/notes").send(nota_pinned).expect(201);
+        // Caso de creación con pinned = false
+        it("Debe crear una nota sin activar el servicio de notify", async () => {
+            const nota_no_pinned = {
+                title: "Nota no pinned",
+                content: ">:|",
+                pinned: false
+            };
 
-        expect(notify).toHaveBeenCalledTimes(1);
+            await request(app).post("/notes").send(nota_no_pinned).expect(201);
 
-        const notify_expected = {
-            id: expect.any(Number),
-            title: nota_pinned.title,
-            content: nota_pinned.content,
-            pinned: true
-        };
+            expect(notify).not.toHaveBeenCalled();
+        });
 
-        expect(notify).toHaveBeenCalledWith(expect.objectContaining(notify_expected));
+        // Caso de creación con pinned = true
+        it("Debe crear una nota y activar el servicio de notify", async () => {
+            const nota_pinned = {
+                title: "Nota pinned",
+                content: ":D",
+                pinned: true
+            };
+
+            await request(app).post("/notes").send(nota_pinned).expect(201);
+
+            expect(notify).toHaveBeenCalledTimes(1);
+
+            const notify_expected = {
+                id: expect.any(Number),
+                title: nota_pinned.title,
+                content: nota_pinned.content,
+                pinned: true
+            };
+
+            expect(notify).toHaveBeenCalledWith(expect.objectContaining(notify_expected));
+        });
     });
 });
