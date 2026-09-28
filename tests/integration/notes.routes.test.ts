@@ -10,6 +10,42 @@ vi.mock("../../src/services/notificationService", () => ({
 
 const app = makeApp(":memory:");
 
+describe("Notes Routes - Test de Integracion (ejercicio 3)", () => {
+    let app = makeApp(":memory:");
+
+    beforeEach(() => {
+        app = makeApp(":memory:");
+    });
+
+    it("Debe devolver una nota existente por su id", async () => {
+        const nota = {
+            title: "Comprar pan",
+            content: "Antes de las 20hs"
+        };
+
+        // Crear la nota que vamos a buscar
+        const nota_creada = await request(app)
+            .post("/notes")
+            .send(nota)
+            .expect(201);
+
+        // Buscar la nota por su id
+        const respuesta = await request(app)
+            .get(`/notes/${nota_creada.body.id}`)
+            .expect(200);
+
+        expect(respuesta.body).toEqual(nota_creada.body);
+    });
+
+    it("Debe devolver 404 cuando el id no existe", async () => {
+        const respuesta = await request(app)
+            .get("/notes/1557")
+            .expect(404);
+
+        expect(respuesta.body).toEqual({ error: "NotFound" });
+    });
+});
+
 describe("Notes Routes - Test de Integracion (ejercicio 6)", () => {
 
     beforeEach(() => {
