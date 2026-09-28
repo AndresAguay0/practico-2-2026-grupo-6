@@ -50,6 +50,41 @@ describe("Notes Routes - Test de integracion", () => {
         });
     });
 
+    describe("(ejercicio 5)", () => {
+
+    it("Debe eliminar una nota existente", async () => {
+        const nota = {
+            title: "Nota para eliminar",
+            content: "Esta nota será eliminada"
+        };
+
+        // Primero crear la nota que vamos a eliminar
+        const nota_creada = await request(app)
+            .post("/notes")
+            .send(nota)
+            .expect(201);
+
+        // Eliminar la nota creada anteriormente
+        await request(app)
+            .delete(`/notes/${nota_creada.body.id}`)
+            .expect(204);
+
+        // Comprobar que ya no existe
+        await request(app)
+            .get(`/notes/${nota_creada.body.id}`)
+            .expect(404);
+    });
+
+    it("Debe devolver 404 cuando se intenta eliminar una nota que no existe", async () => {
+        const respuesta = await request(app)
+            .delete("/notes/1557")
+            .expect(404);
+
+        expect(respuesta.body).toEqual({ error: "NotFound" });
+    });
+
+});
+
     describe("(ejercicio 6)", () => {
 
         // Caso de creación con pinned = false
