@@ -52,4 +52,23 @@ test.describe("Notes API - Test e2e (ejercicio 7)", () => {
         expect(getAfterDelete.status()).toBe(404);
     });
 
+    // Caso de error
+    test("Caso de error: (Recursos que no existen y errores de validacion", async ({ request }) => {
+        const idNoExistente = 999999;
+
+        // Error 404 (No existe)
+        const getRes = await request.get(`/notes/${idNoExistente}`);
+        expect(getRes.status()).toBe(404);
+        const getErrorBody = await getRes.json();
+        expect(getErrorBody).toEqual({ error: "NotFound" });
+
+        // Error de validacion (sin titulo valido)
+        const notaInvalida = { title: "" };
+        const createRes = await request.post("/notes", { data: notaInvalida });
+        expect(createRes.status()).toBe(400);
+
+        const createErrorBody = await createRes.json();
+        expect(createErrorBody.error).toBe("ValidationError");
+        expect(createErrorBody).toHaveProperty("details");
+    });
 });
