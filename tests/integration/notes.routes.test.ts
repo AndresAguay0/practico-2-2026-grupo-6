@@ -2,6 +2,7 @@ import request from "supertest";
 import { makeApp } from "../../src/app"
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { notify } from "../../src/services/notificationService";
+import { error } from "console";
 
 // Mock del servicio notify
 vi.mock("../../src/services/notificationService", () => ({
@@ -50,40 +51,118 @@ describe("Notes Routes - Test de integracion", () => {
         });
     });
 
+    describe("(ejercicio 4)", () => {
+
+        it("Debe modificar solo el título de una nota", async () => {
+            const nota = {
+                title: "Título que modifico",
+                content: "Aguante Charly García"
+            };
+
+            //Crea la nota
+            const nota_creada = await request(app)
+                .post("/notes")
+                .send(nota)
+                .expect(201);
+            
+            //Modifica solo el título
+            const respuesta = await request(app)
+                .patch(`/notes/${nota_creada.body.id}`)
+                .send({
+                    title: "Título nuevo/modificado"
+                })
+                .expect(200);
+            
+            //Verifica que el título fué mofidicado
+            expect(respuesta.body.title).toBe("Título nuevo/modificado");
+
+            //Verifica que el content no fué mofidicado
+            expect(respuesta.body.content).toBe("Aguante Charly García");
+
+            //Verifica que es la misma nota
+            expect(respuesta.body.id).toBe(nota_creada.body.id);
+        });
+
+
+        it("Debe modificar muchos campos al mismo tiempo", async () => {
+            const nota = {
+                title: "1er título",
+                content: "No me gusta Papo",
+                pinned: false
+            };
+
+            //Crea la nota
+            const nota_creada = await request(app)
+                .post("/notes")
+                .send(nota)
+                .expect(201);
+
+            //Modifica varios campos
+            const respuesta = await request(app)
+                .patch(`/notes/${nota_creada.body.id}`)
+                .send({
+                    title: "2do título",
+                    content: "Me gusta Papo",
+                    pinned: true 
+                })
+                .expect(200);
+            
+            //Verifica los cambios
+            expect(respuesta.body.id).toBe(nota_creada.body.id);
+            expect(respuesta.body.title).toBe("2do título");
+            expect(respuesta.body.content).toBe("Me gusta Papo");
+            expect(respuesta.body.pinned).toBe(true);
+        });
+
+
+        it("Debe devolver un 404 cuando se quiere modificar una nota inexistente", async () => {
+            const respuesta = await request(app)
+                .patch("/notes/999")
+                .send({
+                    title: "Título modificado"
+                })
+                .expect(404);
+
+            expect(respuesta.body).toEqual({
+                error: "NotFound"
+            });
+        });
+    });
+
     describe("(ejercicio 5)", () => {
 
-    it("Debe eliminar una nota existente", async () => {
-        const nota = {
-            title: "Nota para eliminar",
-            content: "Esta nota será eliminada"
-        };
+        it("Debe eliminar una nota existente", async () => {
+            const nota = {
+                title: "Nota para eliminar",
+                content: "Esta nota será eliminada"
+            };
 
-        // Primero crear la nota que vamos a eliminar
-        const nota_creada = await request(app)
-            .post("/notes")
-            .send(nota)
-            .expect(201);
+            // Primero crear la nota que vamos a eliminar
+            const nota_creada = await request(app)
+                .post("/notes")
+                .send(nota)
+                .expect(201);
 
-        // Eliminar la nota creada anteriormente
-        await request(app)
-            .delete(`/notes/${nota_creada.body.id}`)
-            .expect(204);
+            // Eliminar la nota creada anteriormente
+            await request(app)
+                .delete(`/notes/${nota_creada.body.id}`)
+                .expect(204);
 
-        // Comprobar que ya no existe
-        await request(app)
-            .get(`/notes/${nota_creada.body.id}`)
-            .expect(404);
+            // Comprobar que ya no existe
+            await request(app)
+                .get(`/notes/${nota_creada.body.id}`)
+                .expect(404);
+        });
+
+        it("Debe devolver 404 cuando se intenta eliminar una nota que no existe", async () => {
+            const respuesta = await request(app)
+                .delete("/notes/1557")
+                .expect(404);
+
+            expect(respuesta.body).toEqual({ error: "NotFound" });
+        });
+
     });
-
-    it("Debe devolver 404 cuando se intenta eliminar una nota que no existe", async () => {
-        const respuesta = await request(app)
-            .delete("/notes/1557")
-            .expect(404);
-
-        expect(respuesta.body).toEqual({ error: "NotFound" });
-    });
-
-});
 
     describe("(ejercicio 6)", () => {
 
